@@ -1,4 +1,4 @@
-# patches
+#  AOSP patches for Galaxian
 
 Required AOSP patches for building AOSP-based ROMs for **Nothing Phone (3a) Lite (Galaxian)**.
 
