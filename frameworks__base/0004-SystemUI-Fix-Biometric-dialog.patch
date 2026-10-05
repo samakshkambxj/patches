@@ -1,0 +1,118 @@
+From cc0fc01b0e99431cf5a794c6ad663e80cea4182d Mon Sep 17 00:00:00 2001
+From: sm455 <mondesahoo@gmail.com>
+Date: Thu, 1 Oct 2026 10:36:48 +0000
+Subject: [PATCH 2/2] SystemUI: Fix Biometric dialog
+
+Change-Id: Idbae6b83c88c67ad1ac2bc42ee0070f8397a83b2
+---
+ .../biometric_prompt_one_pane_layout.xml      | 37 +++++++++++-------
+ .../biometric_prompt_two_pane_layout.xml      | 39 ++++++++++++-------
+ 2 files changed, 49 insertions(+), 27 deletions(-)
+
+diff --git a/packages/SystemUI/res/layout/biometric_prompt_one_pane_layout.xml b/packages/SystemUI/res/layout/biometric_prompt_one_pane_layout.xml
+index 6066566ea777..4fbfb3434fb3 100644
+--- a/packages/SystemUI/res/layout/biometric_prompt_one_pane_layout.xml
++++ b/packages/SystemUI/res/layout/biometric_prompt_one_pane_layout.xml
+@@ -201,22 +201,33 @@
+         </androidx.constraintlayout.widget.ConstraintLayout>
+     </ScrollView>
+ 
+-    <TextView
+-        android:id="@+id/indicator"
+-        style="@style/TextAppearance.AuthCredential.Indicator"
+-        android:layout_width="0dp"
++    <androidx.constraintlayout.widget.ConstraintLayout
++        android:id="@+id/indicator_container"
++        android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+-        android:layout_marginHorizontal="24dp"
+-        android:layout_marginTop="24dp"
+-        android:accessibilityLiveRegion="polite"
+-        android:fadingEdge="horizontal"
+-        android:gravity="center_horizontal"
+-        android:scrollHorizontally="true"
+-        app:layout_constraintBottom_toTopOf="@+id/button_bar"
++        app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="@+id/panel"
+         app:layout_constraintStart_toStartOf="@+id/panel"
+-        app:layout_constraintTop_toBottomOf="@+id/biometric_icon"
+-        app:layout_constraintVertical_bias="0.0" />
++        app:layout_constraintTop_toBottomOf="@+id/biometric_icon">
++
++        <TextView
++            android:id="@+id/indicator"
++            style="@style/TextAppearance.AuthCredential.Indicator"
++            android:layout_width="0dp"
++            android:layout_height="wrap_content"
++            android:layout_marginTop="24dp"
++            android:layout_marginBottom="36dp"
++            android:layout_marginHorizontal="24dp"
++            android:accessibilityLiveRegion="polite"
++            android:fadingEdge="horizontal"
++            android:scrollHorizontally="true"
++            android:gravity="center_horizontal"
++            app:layout_constraintBottom_toBottomOf="parent"
++            app:layout_constraintEnd_toEndOf="parent"
++            app:layout_constraintStart_toStartOf="parent"
++            app:layout_constraintTop_toTopOf="parent"
++            app:layout_constraintVertical_bias="0.0" />
++    </androidx.constraintlayout.widget.ConstraintLayout>
+ 
+     <ImageButton
+         android:id="@+id/close_button"
+diff --git a/packages/SystemUI/res/layout/biometric_prompt_two_pane_layout.xml b/packages/SystemUI/res/layout/biometric_prompt_two_pane_layout.xml
+index 405c590b749d..a84f0358e037 100644
+--- a/packages/SystemUI/res/layout/biometric_prompt_two_pane_layout.xml
++++ b/packages/SystemUI/res/layout/biometric_prompt_two_pane_layout.xml
+@@ -222,23 +222,34 @@ android:layout_height="match_parent">
+         </androidx.constraintlayout.widget.ConstraintLayout>
+     </ScrollView>
+ 
+-    <TextView
+-        android:id="@+id/indicator"
+-        style="@style/TextAppearance.AuthCredential.Indicator"
+-        android:layout_width="wrap_content"
++    <androidx.constraintlayout.widget.ConstraintLayout
++        android:id="@+id/indicator_container"
++        android:layout_width="match_parent"
+         android:layout_height="wrap_content"
+-        android:layout_marginTop="24dp"
+-        android:accessibilityLiveRegion="assertive"
+-        android:fadingEdge="horizontal"
+-        android:gravity="center_horizontal"
+-        android:scrollHorizontally="true"
+-        android:maxLines="2"
+-        app:layout_constraintBottom_toTopOf="@+id/button_bar"
++        app:layout_constraintBottom_toBottomOf="parent"
+         app:layout_constraintEnd_toEndOf="@+id/biometric_icon"
+         app:layout_constraintStart_toStartOf="@+id/biometric_icon"
+-        app:layout_constraintTop_toBottomOf="@+id/biometric_icon"
+-        app:layout_constraintVertical_bias="0.0"
+-        app:layout_constraintWidth_max="@dimen/biometric_dialog_indicator_max_width" />
++        app:layout_constraintTop_toBottomOf="@+id/biometric_icon">
++
++        <TextView
++            android:id="@+id/indicator"
++            style="@style/TextAppearance.AuthCredential.Indicator"
++            android:layout_width="wrap_content"
++            android:layout_height="wrap_content"
++            android:layout_marginTop="24dp"
++            android:layout_marginBottom="36dp"
++            android:accessibilityLiveRegion="assertive"
++            android:fadingEdge="horizontal"
++            android:gravity="center_horizontal"
++            android:scrollHorizontally="true"
++            android:maxLines="2"
++            app:layout_constraintBottom_toBottomOf="parent"
++            app:layout_constraintEnd_toEndOf="parent"
++            app:layout_constraintStart_toStartOf="parent"
++            app:layout_constraintTop_toTopOf="parent"
++            app:layout_constraintVertical_bias="0.0"
++            app:layout_constraintWidth_max="@dimen/biometric_dialog_indicator_max_width" />
++    </androidx.constraintlayout.widget.ConstraintLayout>
+ 
+     <include
+         android:id="@+id/button_bar"
+-- 
+2.43.0
+
