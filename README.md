@@ -111,6 +111,26 @@ Without this, Galaxian does not boot AOSP builds on a fenrir-patched LK.
 
 Must apply after patch 5.
 
+### 7. `frameworks__base/0003-telephony-Relax-default-5G-NR-SA-SS-RSRP-signal-stre.patch`
+
+**Target:** `frameworks/base`
+**File:** `telephony/java/android/telephony/CarrierConfigManager.java`
+**Original:** rajdeep-3305 `<rajdeepbiswas3305@gmail.com>`, 2026-05-29, `dca7cc6bfcbfe014aa3f32705a5a2f6d74e3c4bf` via `sm455/aosp_patches@7460126`, `I8f4a92c18dc155369add2d4b37de00615be8bbb1`
+
+**Problem:** AOSP 5G NR SA SS-RSRP defaults require -65 dBm for GREAT, so real-world SA coverage (-90 to -115 dBm) shows 1 bar.
+
+**Fix:** Relax `KEY_5G_NR_SSRSRP_THRESHOLDS_INT_ARRAY` to `-125 / -115 / -105 / -95` dBm (POOR/MODERATE/GOOD/GREAT). NSA and carrier overrides unaffected.
+
+### 8. `frameworks__base/0004-SystemUI-Fix-Biometric-dialog.patch`
+
+**Target:** `frameworks/base`
+**Files:** `packages/SystemUI/res/layout/biometric_prompt_one_pane_layout.xml`, `biometric_prompt_two_pane_layout.xml`
+**Original:** sm455 `<mondesahoo@gmail.com>`, 2026-10-01, `cc0fc01b0e99431cf5a794c6ad663e80cea4182d` via `sm455/aosp_patches@7460126`, `Idbae6b83c88c67ad1ac2bc42ee0070f8397a83b2`
+
+**Problem:** Biometric prompt `@id/indicator` overlapped `button_bar` / clipped.
+
+**Fix:** Wrap indicator in `@id/indicator_container` ConstraintLayout between `biometric_icon` and parent bottom, 24dp top / 36dp bottom margins, applied to both one-pane and two-pane layouts.
+
 ## How to apply
 
 Requirements: Python 3, `git`, a synced AOSP tree (e.g. `~/android`).
@@ -155,3 +175,4 @@ Rerunning `apply.py` after resolving is safe; already-applied patches will fail 
 - sreelekshman (Aperture 16:9 / 60 FPS patch)
 - Mashopy / Elias Gheeraert (fastbootd + libfs_avb fenrir patches)
 - beingashwani, Ghosuto (SystemUI NotifCollection coalesce + throttle via Rising)
+- rajdeep-3305 (5G NR SA thresholds), sm455 (biometric dialog via aosp_patches@7460126)
