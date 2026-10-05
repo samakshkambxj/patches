@@ -1,0 +1,60 @@
+From af0e51288d8feda1e92252b115afcc6269007e51 Mon Sep 17 00:00:00 2001
+From: Ghosuto <clash.raja10@gmail.com>
+Date: Thu, 13 Aug 2026 18:11:25 +0000
+Subject: [PATCH] SystemUI: Avoid redundant Bind/Updated events on throttled
+ progress updates
+
+Signed-off-by: Ghosuto <clash.raja10@gmail.com>
+---
+ .../collection/NotifCollection.java             | 17 +++++++++--------
+ 1 file changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/packages/SystemUI/src/com/android/systemui/statusbar/notification/collection/NotifCollection.java b/packages/SystemUI/src/com/android/systemui/statusbar/notification/collection/NotifCollection.java
+index 8e2e383795785..78fe01ade9121 100644
+--- a/packages/SystemUI/src/com/android/systemui/statusbar/notification/collection/NotifCollection.java
++++ b/packages/SystemUI/src/com/android/systemui/statusbar/notification/collection/NotifCollection.java
+@@ -1100,14 +1100,6 @@ private void updateNotificationInternally(StatusBarNotification sbn, String name
+         }
+         mLogger.logNotifInternalUpdate(entry, name, reason);
+ 
+-        // First do the pieces of postNotification which are not about assuming the notification
+-        // was sent by the app
+-        entry.setSbn(sbn);
+-        mEventQueue.add(new BindEntryEvent(entry, sbn));
+-
+-        mLogger.logNotifUpdated(entry);
+-        mEventQueue.add(new EntryUpdatedEvent(entry, UpdateSource.SystemUi));
+-
+         Notification notification = sbn.getNotification();
+         boolean isOngoingProgressUpdate = notification != null
+                 && notification.extras != null
+@@ -1118,6 +1110,7 @@ private void updateNotificationInternally(StatusBarNotification sbn, String name
+             long now = mClock.elapsedRealtime();
+             Long last = mLastProgressRebuildTimeForKey.get(sbn.getKey());
+             if (last != null && (now - last) < PROGRESS_REBUILD_THROTTLE_MS) {
++                entry.setSbn(sbn);
+                 final String key = sbn.getKey();
+                 if (mPendingProgressFlushKeys.add(key)) {
+                     long delay = PROGRESS_REBUILD_THROTTLE_MS - (now - last);
+@@ -1125,6 +1118,8 @@ private void updateNotificationInternally(StatusBarNotification sbn, String name
+                         mPendingProgressFlushKeys.remove(key);
+                         if (mNotificationSet.get(key) != null) {
+                             mLastProgressRebuildTimeForKey.put(key, mClock.elapsedRealtime());
++                            mEventQueue.add(new BindEntryEvent(entry, entry.getSbn()));
++                            mEventQueue.add(new EntryUpdatedEvent(entry, UpdateSource.SystemUi));
+                             dispatchEventsAndRebuildList("progressThrottleFlush");
+                         }
+                     }, delay);
+@@ -1134,6 +1129,12 @@ private void updateNotificationInternally(StatusBarNotification sbn, String name
+             mLastProgressRebuildTimeForKey.put(sbn.getKey(), now);
+         }
+ 
++        entry.setSbn(sbn);
++        mEventQueue.add(new BindEntryEvent(entry, sbn));
++
++        mLogger.logNotifUpdated(entry);
++        mEventQueue.add(new EntryUpdatedEvent(entry, UpdateSource.SystemUi));
++
+         // Skip the applyRanking step and go straight to dispatching the events
+         dispatchEventsAndCoalescedRebuildList("updateNotificationInternally");
+     }
