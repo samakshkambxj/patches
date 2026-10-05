@@ -11,6 +11,7 @@ Source repo: `https://github.com/samakshkambxj/patches`
 Each top-level directory maps to an AOSP project path, with `__` used in place of `/`:
 
 ```
+frameworks__base            ->  frameworks/base
 packages__apps__Aperture  ->  packages/apps/Aperture
 system__core              ->  system/core
 system__fs__fs_mgr        ->  system/fs/fs_mgr
@@ -83,6 +84,33 @@ if (fs_mgr_get_boot_config("verifiedbootstate", &verified_boot_state)) {
 
 Without this, Galaxian does not boot AOSP builds on a fenrir-patched LK.
 
+### 5. `frameworks__base/0001-SystemUI-Optimize-notification-list-rebuilds.patch`
+
+**Target:** `frameworks/base`
+**File:** `packages/SystemUI/src/com/android/systemui/statusbar/notification/collection/NotifCollection.java`
+**Original:** beingashwani `<ashwanic177@gmail.com>`, 2026-08-13, `fa4b30b9ff366644fb24c6c69f8a1082cda82eac` (Signed-off-by Ghosuto)
+
+**Problem:** Every notification post/remove/ranking/update triggered a synchronous list rebuild, and ongoing progress notifications (downloads, media) spam updates, causing SystemUI jank.
+
+**Fix:**
+- Adds `dispatchEventsAndCoalescedRebuildList()` with 32ms `REBUILD_COALESCE_WINDOW_MS` delay for post/group-post/remove/ranking/update paths.
+- Throttles `EXTRA_PROGRESS` + ongoing updates to one rebuild per 400ms per key (`PROGRESS_REBUILD_THROTTLE_MS`), with delayed `progressThrottleFlush`.
+- Clears per-key throttle state in `tryRemoveNotification()`.
+
+### 6. `frameworks__base/0002-SystemUI-Avoid-redundant-Bind-Updated-events.patch`
+
+**Target:** `frameworks/base`
+**File:** `packages/SystemUI/src/com/android/systemui/statusbar/notification/collection/NotifCollection.java`
+**Original:** Ghosuto `<clash.raja10@gmail.com>`, 2026-08-13, `af0e51288d8feda1e92252b115afcc6269007e51`
+
+**Problem:** Follow-up to patch 5: throttled progress updates still queued `BindEntryEvent`/`EntryUpdatedEvent` before the throttle check, defeating the optimization.
+
+**Fix:**
+- Moves `entry.setSbn()` / `BindEntryEvent` / `EntryUpdatedEvent` below the throttle check.
+- Throttled path only refreshes `Sbn`; delayed flush re-emits `Bind` + `Updated` then rebuilds.
+
+Must apply after patch 5.
+
 ## How to apply
 
 Requirements: Python 3, `git`, a synced AOSP tree (e.g. `~/android`).
@@ -106,6 +134,7 @@ What it does:
 
 Manual apply (equivalent):
 ```bash
+git -C ~/android/frameworks/base am ~/patches/frameworks__base/*.patch
 git -C ~/android/packages/apps/Aperture am ~/patches/packages__apps__Aperture/*.patch
 git -C ~/android/system/core am ~/patches/system__core/*.patch
 git -C ~/android/system/fs/fs_mgr am ~/patches/system__fs__fs_mgr/*.patch
@@ -125,3 +154,4 @@ Rerunning `apply.py` after resolving is safe; already-applied patches will fail 
 - bengris32 (MediaTek HFPS patch)
 - sreelekshman (Aperture 16:9 / 60 FPS patch)
 - Mashopy / Elias Gheeraert (fastbootd + libfs_avb fenrir patches)
+- beingashwani, Ghosuto (SystemUI NotifCollection coalesce + throttle via Rising)

@@ -34,6 +34,7 @@ def apply_patches(patches_root, base_repo):
         # __ → /
         # system__fs__fs_mgr → system/fs/fs_mgr
         # packages__apps__Settings → packages/apps/Settings
+        # frameworks__base → frameworks/base
         target = relative.parent.as_posix().replace("__", "/")
         target_dir = base_repo / target
 
